@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from asyncio import Semaphore
 from datetime import datetime
 from enum import Enum
@@ -346,7 +347,9 @@ async def get_and_delete_old_versions(image_name: ImageName, inputs: Inputs, htt
                 # One thing to note here is that we use fnmatch to support wildcards.
                 # A filter-tags setting of 'some-tag-*' should match to both
                 # 'some-tag-1' and 'some-tag-2'.
-                if any(fnmatch(tag, filter_tag) for tag in image_tags):
+                pat = re.compile(filter_tag)
+                if any(re.search(pat, tag) for tag in image_tags):
+                    print(f'Include {image_tags} to delete list by filter {filter_tag}.')
                     delete_image = True
                     break
 
