@@ -297,10 +297,6 @@ async def get_and_delete_old_versions(image_name: ImageName, inputs: Inputs, htt
         account_type=inputs.account_type, org_name=inputs.org_name, image_name=image_name, http_client=http_client
     )
 
-    # Trim the version list to the n'th element we want to keep
-    if inputs.keep_at_least > 0:
-        versions = versions[inputs.keep_at_least :]
-
     # Define list of deletion-tasks to append to
     tasks = []
 
@@ -349,6 +345,7 @@ async def get_and_delete_old_versions(image_name: ImageName, inputs: Inputs, htt
                 # 'some-tag-1' and 'some-tag-2'.
                 pat = re.compile(filter_tag)
                 if any(re.search(pat, tag) for tag in image_tags):
+                    print(f'Include {image_tags} to delete list by filter {filter_tag}.')
                     delete_image = True
                     break
 
@@ -370,6 +367,12 @@ async def get_and_delete_old_versions(image_name: ImageName, inputs: Inputs, htt
                         )
                     )
                 )
+
+    # Trim the version list to the n'th element we want to keep
+    if inputs.keep_at_least > 0:
+        for i in range(0, min(inputs.keep_at_least, len(tasks))):
+            tasks[0].cancel()
+            tasks.remove(tasks[0])
 
     if not tasks:
         print(f'No more versions to delete for {image_name.value}')
