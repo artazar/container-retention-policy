@@ -1,0 +1,34 @@
+name: Delete old container images from GitHub container registry
+
+on:
+  workflow_dispatch:   # manual run allowed
+
+
+jobs:
+  clean-ghcr:
+    name: Clean up GHCR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean up non-prod images
+        uses: artazar/container-retention-policy@main
+        with:
+          image-names: ghcr-retention-policy-test
+          cut-off: One second ago UTC
+          account-type: personal
+          org-name: ${{ github.repository_owner }}
+          keep-at-least: 1
+          filter-tags: '^([0-9]*\.)*[0-9]+-.*$'
+          skip-tags: develop, stage, main
+          token: ${{ secrets.PAT }}
+
+      - name: Clean up prod images by tags
+        uses: artazar/container-retention-policy@main
+        with:
+          image-names: ghcr-retention-policy-test
+          cut-off: One second ago UTC
+          account-type: personal
+          org-name: ${{ github.repository_owner }}
+          keep-at-least: 2
+          filter-tags: '^([0-9]*\.)*[0-9]+$'
+          skip-tags: develop, stage, main
+          token: ${{ secrets.PAT }}
