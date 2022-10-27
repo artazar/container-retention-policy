@@ -370,7 +370,7 @@ async def get_and_delete_old_versions(image_name: ImageName, inputs: Inputs, htt
 
     # Trim the version list to the n'th element we want to keep
     if inputs.keep_at_least > 0:
-        for i in range(0, min(inputs.keep_at_least, len(tasks))):
+        for _i in range(0, min(inputs.keep_at_least, len(tasks))):
             tasks[0].cancel()
             tasks.remove(tasks[0])
 
