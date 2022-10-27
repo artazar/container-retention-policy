@@ -2,6 +2,7 @@ name: Test
 
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   linting:
@@ -52,8 +53,3 @@ jobs:
       - run: poetry install --no-interaction --no-root
         if: steps.cache-venv.outputs.cache-hit != 'true'
       - run: source $VENV && pytest main_tests.py --cov-report=xml
-      - uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
