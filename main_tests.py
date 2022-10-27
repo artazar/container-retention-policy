@@ -319,13 +319,24 @@ class TestGetAndDeleteOldVersions:
     async def test_filter_tags(self, mocker, capsys):
         data = deepcopy(self.valid_data)
         data[0].metadata = MetadataModel(
-            **{'container': {'tags': ['sha-deadbeef', 'edge']}, 'package_type': 'container'}
+            **{'container': {'tags': ['sha-deadbeef', 'edge', '1.0.1', 'v3']}, 'package_type': 'container'}
         )
         mocker.patch.object(main.GithubAPI, 'list_package_versions', partial(self._mock_list_package_versions, data))
-        inputs = _create_inputs_model(filter_tags='sha-*')
+        # filter case 1
+        inputs = _create_inputs_model(filter_tags='sha-.*')
         await get_and_delete_old_versions(image_name=ImageName('a', 'a'), inputs=inputs, http_client=mock_http_client)
         captured = capsys.readouterr()
-        assert captured.out == 'Deleted old image: a:1234567\n'
+        assert 'Deleted old image: a:1234567\n' in captured.out
+        # filter case 2
+        inputs = _create_inputs_model(filter_tags=r'^([0-9]*\.)*[0-9]+$')
+        await get_and_delete_old_versions(image_name=ImageName('a', 'a'), inputs=inputs, http_client=mock_http_client)
+        captured = capsys.readouterr()
+        assert 'Deleted old image: a:1234567\n' in captured.out
+        # filter case 3
+        inputs = _create_inputs_model(filter_tags='^v[0-9]+$')
+        await get_and_delete_old_versions(image_name=ImageName('a', 'a'), inputs=inputs, http_client=mock_http_client)
+        captured = capsys.readouterr()
+        assert 'Deleted old image: a:1234567\n' in captured.out
 
 
 def test_inputs_bad_account_type():
